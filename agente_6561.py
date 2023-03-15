@@ -7,22 +7,22 @@ from functools import reduce
 import random
 import time
 
-#Enumerador representando as cores possíveis de serem jogadas mais uma cor vazia para preencher o objeto que não tem uma jogada ainda
 class Color(Enum):
+    """ Enumerador representando as cores possíveis de serem jogadas mais uma cor vazia para preencher o objeto que não tem uma jogada ainda. """
     BLUE = 1
     RED = 2
     GRAY = 3
     EMPTY = 4
 
-#Enumerador que representa as direções onde o tabuleiro pode ser movido
 class Moviment(Enum):
+    """ Enumerador que representa as direções onde o tabuleiro pode ser movido. """
     UP = 'U'
     DOWN = 'D'
     LEFT = 'L'
     RIGHT = 'R'
 
-#Representa uma peça dentro tabuleiro, podendo indicar também um espaço vazio com a cor Empty e o valor 0
 class Piece:
+    """ Representa uma peça dentro tabuleiro, podendo indicar também um espaço vazio com a cor Empty e o valor 0. """
     def __init__(self, color = Color.EMPTY, value = 0):
         self.color = color
         self.value = value
@@ -40,8 +40,8 @@ class Piece:
     def __repr__(self):
         return f"Piece(color={self.color}, value={self.value})"
 
-#Classe base para o ambiente, onde é guardado o estado atual do jogo, efetua operações no tabuleiro (colocar peças, somar valores no movimento ou anular peças.)
 class Environment:
+    """ Classe base para o ambiente, onde é guardado o estado atual do jogo, efetua operações no tabuleiro (colocar peças, somar valores no movimento ou anular peças). """
     def __init__(self):
         self.board = [
                         [Piece(),Piece(), Piece(),Piece()],
@@ -50,8 +50,10 @@ class Environment:
                         [Piece(),Piece(), Piece(),Piece()],
                     ]
 
-    #Reinicia o jogo
     def reset_game(self):
+        """
+        Reinicia o jogo.
+        """
         self.board = [
                         [Piece(),Piece(), Piece(),Piece()],
                         [Piece(),Piece(), Piece(),Piece()],
@@ -59,12 +61,16 @@ class Environment:
                         [Piece(),Piece(), Piece(),Piece()],
                     ]
         
-    #Checa se a posição é válida para por uma peça
     def __is_empty_space(self, position_x: int, position_y: int) -> bool:
+        """
+        Checa se a posição é válida para por uma peça.
+        """
         return self.board[position_x][position_y].value == 0
     
-    #Checa se o tabuleiro atual é igual ao tabuleiro totalmente vazio
     def is_board_empty(self) -> bool:
+        """
+        Checa se o tabuleiro atual é igual ao tabuleiro totalmente vazio.
+        """
         return self.board == [
                         [Piece(),Piece(), Piece(),Piece()],
                         [Piece(),Piece(), Piece(),Piece()],
@@ -72,8 +78,10 @@ class Environment:
                         [Piece(),Piece(), Piece(),Piece()],
                     ]
     
-    #Verifica se não existem mais espaços vazios no tabuleiro, caso não exista o jogo deve parar
     def is_board_full(self) -> bool:
+        """
+        Verifica se não existem mais espaços vazios no tabuleiro, caso não exista o jogo deve parar.
+        """
         result = True
         for linha in self.board:
             for item in linha:
@@ -85,9 +93,12 @@ class Environment:
             break
         return result
     
-    #Efetua a lógica de somar ou anular as peças de acordo com a lógica do jogo, cores e valores iguais gera uma nova peça da mesma cor e com o triplo do valor original,
-    #duas peças de mesmo valor e cores diferentes se anulam e caso seja de valores diferentes não faz nada.
     def sum_pieces(self, piece1: Piece, piece2: Piece) -> Piece:
+        """
+        Efetua a lógica de somar ou anular as peças de acordo com a lógica do jogo, cores e valores iguais gera uma nova
+        peça da mesma cor e com o triplo do valor original, duas peças de mesmo valor e cores diferentes se anulam e caso
+        seja de valores diferentes não faz nada.
+        """
         new_value = 0
         if (piece1.value == piece2.value):
             if (piece1.color == piece2.color):
@@ -96,24 +107,28 @@ class Environment:
             else:
                 return Piece()
 
-    #Coloca uma peça em uma determinada posição, se for uma posição valida (vazia) retorna true, caso contrário false 
     def put_piece(self, position_x: int, position_y: int, piece: Piece) -> bool:
+        """
+        Coloca uma peça em uma determinada posição, se for uma posição valida (vazia) retorna true, caso contrário false.
+        """
         if self.__is_empty_space(position_x, position_y):
             self.board[position_x][position_y] = piece
             return True
         else:
             return False
 
-    #Atualiza o estado do tabulerio de acordo com o movimento selecionado, validando todas as regras descritas pelo jogo.
-    #Caso seja fornecido um tabuleiro as regras são aplicadas nele sem impactar no tabuleiro original
-    #A função retorna o novo tabuleiro, quantas peças se somaram e quantas se anularam respectivamente
     def calculate_board(self, movement: str, board = None):
+        """
+        Atualiza o estado do tabulerio de acordo com o movimento selecionado, validando todas as regras descritas pelo jogo.
+        Caso seja fornecido um tabuleiro as regras são aplicadas nele sem impactar no tabuleiro original.
+        A função retorna o novo tabuleiro, quantas peças se somaram e quantas se anularam respectivamente.
+        """
         direction = Moviment(movement)
         removals = 0
         additions = 0
         if not board:
             board = self.board
-        iteration = range(3,-1,-1) if direction == Moviment.RIGHT or direction == Moviment.DOWN else range(4) 
+        iteration = range(3,-1,-1) if direction == Moviment.RIGHT or direction == Moviment.DOWN else range(4)
         for i in range(4):
             for j in iteration:
                 actual_piece = board[i][j] if direction == Moviment.LEFT or direction == Moviment.RIGHT else board[j][i]
@@ -125,7 +140,7 @@ class Environment:
                 while before_piece.value == 0 and (k >= 0 and k <= 3):
                     before_piece = board[i][k] if direction == Moviment.LEFT or direction == Moviment.RIGHT else board[k][i]
                     k = k - 1 if direction == Moviment.RIGHT or direction == Moviment.DOWN else k + 1
-                if (before_piece.value != 0):
+                if (before_piece.value != 0): 
                     new_piece = self.sum_pieces(actual_piece, before_piece)
                     if (new_piece != None):
                         if (new_piece.value == 0):
@@ -154,6 +169,9 @@ class Environment:
         return board, additions, removals
     
     def get_score(self, board = None) -> int:
+        """
+        Calcula a pontuação de cada uma das cores presentes no tabuleiro.
+        """
         if not board:
             board = self.board
         score_blue = 0
@@ -170,6 +188,8 @@ class Environment:
         return (max([score_blue, score_red, score_gray]) * 2) - score_blue - score_red - score_gray
 
 class QLearningAgent:
+    """Classe Q-learning"""
+
     def __init__(self, alpha=0.5, gamma=0.9, epsilon=0.1, q_values = {}):
         self.q_values = q_values # dicionário para armazenar os valores Q
         self.alpha = alpha # taxa de aprendizagem
@@ -177,15 +197,18 @@ class QLearningAgent:
         self.epsilon = epsilon # probabilidade de explorar
 
     def get_legal_actions(self, state) -> list:
+        """
+        Valida o movimento.
+        """
         moves = []
         for i in range(4):
             if (state[i][0]) != 'X':
                 moves.append(state[i][0])
         return moves
-    
+
     def get_q_value(self, state, action):
         """
-        Obtém o valor Q para um determinado estado e ação
+        Obtem o Q-value para um determinado estado e ação
         """
         if (tuple(map(tuple, state)), action) not in self.q_values:
             self.q_values[(tuple(map(tuple, state)), action)] = 0.0
@@ -213,7 +236,7 @@ class QLearningAgent:
 
     def update(self, state, action, next_state, reward):
         """
-        Atualiza os valores Q para um determinado estado e ação
+        Atualiza os valores para um determinado estado e ação
         """
         q_value = self.get_q_value(state, action)
         value = self.get_value(next_state)
@@ -227,17 +250,24 @@ class QLearningAgent:
         return random.choices(list(policy.keys()), weights=list(policy.values()))[0]
 
 class RandomPlayer:
+    """ Classe de um jogador player aleatório. """
     def __init__(self) -> None:
         self.log = open("player.log", "w")
 
-    def gera_posicao(self) -> tuple:
+    def generate_position(self) -> tuple:
+        """
+        Gera uma posição aleatória de jogo.
+        """
         return (random.randint(0,3), random.randint(0,3))
 
-    def joga(self, round: int, environment: Environment):
+    def play(self, round: int, environment: Environment):
+        """
+        Efetua uma jogada.
+        """
         if round % 10 in [1,2,3,6,7,8]:
-            posicao = self.gera_posicao()
+            posicao = self.generate_position()
             while not environment.put_piece(posicao[0],posicao[1], Piece(color=self.get_color(round), value=1)):
-                posicao = self.gera_posicao()
+                posicao = self.generate_position()
             print(f'{posicao[0]+1}{posicao[1]+1}')
             sys.stdout.flush()
         else:
@@ -250,7 +280,10 @@ class RandomPlayer:
             print(f'{move.value}')
             sys.stdout.flush()
 
-    def le_jogada(self, environment: Environment):
+    def read_move(self, environment: Environment):
+        """
+        Lê movimentos imputados.
+        """
         entrada = sys.stdin.readline().strip()
         if entrada == 'Quit':
             self.log.close()
@@ -261,14 +294,21 @@ class RandomPlayer:
         else:
             environment.put_piece(int(entrada[0])-1, int(entrada[1])-1, Piece(color=self.get_color(round), value=1))
 
-    def registra_log(self, environment: Environment):
+    def register_log(self, environment: Environment):
+        """
+        Efetua o registro de logs.
+        """
         for linha in environment.board:
             for elemento in linha:
                 self.log.write(f'{elemento} ')
             self.log.write('\n')
         self.log.write('\n')
 
+
 def calculate_ai_state(board, calculate_board, is_board_empty, get_score):
+    """
+    Calcula a recompensa da IA.
+    """
     state = []
     for move in list(Moviment):
         new_board, additions, removals = calculate_board(movement=move.value, board=deepcopy(board))
@@ -287,6 +327,10 @@ def calculate_ai_state(board, calculate_board, is_board_empty, get_score):
     return state
 
 def get_best_pick(board:list[list[Piece]], piece: Piece):
+    """
+    Valida se a maior peça existente no tabuleiro é 1 ou colocando uma peça igual a de maior valor
+    para colocar cores iguais juntas e distanciar as de cores diferentes.
+    """
     max_piece = reduce(lambda x, y: x if x.value > y.value else y, [item for row in board for item in row])
     best_value = -1
     best_x = -1
@@ -302,7 +346,7 @@ def get_best_pick(board:list[list[Piece]], piece: Piece):
                 temp_board[i][j] == piece
                 value = 0
                 for k in range(4):
-                    if (max_piece.value == 1 or piece.color == max_piece.color):
+                    if (max_piece.value == 1 or piece.color == max_piece.color): 
                         if board[i][k].value == piece.value and board[i][k].color == piece.color and k != j:
                             if (k+1 == j or k-1 == j):
                                 value += 1
@@ -333,15 +377,21 @@ def get_best_pick(board:list[list[Piece]], piece: Piece):
     return best_x if best_x > -1 else last_empty_x, best_y if best_y > -1 else last_empty_y
 
 def get_color(round: int) -> Color:
-        calc = round % 10
-        if calc in [1,6]:
-            return Color.BLUE
-        elif calc in [3,8]:
-            return Color.GRAY
-        elif calc in [2,7]:
-            return Color.RED
+    """
+    Identifica a cor pelo round.
+    """
+    calc = round % 10
+    if calc in [1,6]:
+        return Color.BLUE
+    elif calc in [3,8]:
+        return Color.GRAY
+    elif calc in [2,7]:
+        return Color.RED
 
-def le_jogada(environment: Environment, round: int):
+def read_move(environment: Environment, round: int):
+    """
+    Lê movimentos imputados.
+    """
     entrada = sys.stdin.readline().strip()
     if entrada == 'Quit':
         sys.exit(0)
@@ -352,6 +402,9 @@ def le_jogada(environment: Environment, round: int):
         environment.put_piece(int(entrada[0])-1, int(entrada[1])-1, Piece(color=get_color(round), value=1))
 
 def trainingAI(environment: Environment, ai_player: QLearningAgent):
+    """
+    Efetua o trainamento da IA.
+    """
     score_file = open("score_log.log", "w")
     average = 0
     for partidas in range(1,10000):
@@ -1402,7 +1455,7 @@ if __name__ == "__main__":
                     print(action)
                     sys.stdout.flush()
             else:
-                le_jogada(environment, round)
+                read_move(environment, round)
             round += 1
     else:
         while True:
@@ -1421,6 +1474,6 @@ if __name__ == "__main__":
                     print(action)
                     sys.stdout.flush()
             else:
-                le_jogada(environment, round)
+                read_move(environment, round)
             round += 1
     
